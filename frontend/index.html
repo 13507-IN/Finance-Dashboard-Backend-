@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finance Dashboard API Tester</title>
+  <link rel="stylesheet" href="/tester/style.css" />
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Finance Dashboard API Tester</h1>
+      <p>Use this page to test all backend endpoints from one place.</p>
+    </header>
+
+    <section class="card config">
+      <h2>Config</h2>
+      <div class="row">
+        <label for="baseUrl">Base API URL</label>
+        <input id="baseUrl" type="text" placeholder="http://localhost:4000/api" />
+      </div>
+      <div class="row">
+        <label for="jwtToken">JWT Token</label>
+        <textarea id="jwtToken" rows="3" placeholder="Paste token after login"></textarea>
+      </div>
+      <div class="button-row">
+        <button id="saveToken" type="button">Save Token</button>
+        <button id="clearToken" type="button" class="secondary">Clear Token</button>
+        <button id="clearOutput" type="button" class="secondary">Clear Output</button>
+      </div>
+    </section>
+
+    <section class="grid two">
+      <article class="card">
+        <h2>Quick Checks</h2>
+        <div class="button-row">
+          <button id="btnHealth" type="button">GET /health</button>
+          <button id="btnMe" type="button">GET /auth/me</button>
+          <button id="btnDashboard" type="button">GET /dashboard</button>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>Auth</h2>
+        <form id="registerForm" class="stack">
+          <h3>Register</h3>
+          <input name="email" type="email" placeholder="Email" required />
+          <input name="password" type="password" placeholder="Password" required />
+          <select name="role">
+            <option value="VIEWER">VIEWER</option>
+            <option value="ANALYST">ANALYST</option>
+          </select>
+          <button type="submit">POST /auth/register</button>
+        </form>
+
+        <form id="loginForm" class="stack">
+          <h3>Login</h3>
+          <input name="email" type="email" placeholder="Email" required />
+          <input name="password" type="password" placeholder="Password" required />
+          <button type="submit">POST /auth/login</button>
+        </form>
+      </article>
+    </section>
+
+    <section class="grid two">
+      <article class="card">
+        <h2>Financial Records</h2>
+
+        <form id="createRecordForm" class="stack">
+          <h3>Create (ADMIN)</h3>
+          <input name="amount" type="number" step="0.01" min="0.01" placeholder="Amount" required />
+          <select name="type" required>
+            <option value="INCOME">INCOME</option>
+            <option value="EXPENSE">EXPENSE</option>
+          </select>
+          <input name="category" type="text" placeholder="Category" required />
+          <input name="date" type="datetime-local" required />
+          <input name="notes" type="text" placeholder="Notes (optional)" />
+          <input name="userId" type="number" min="1" placeholder="User ID (optional)" />
+          <button type="submit">POST /records</button>
+        </form>
+
+        <form id="getRecordsForm" class="stack">
+          <h3>Get Records (ANALYST, ADMIN)</h3>
+          <select name="type">
+            <option value="">All Types</option>
+            <option value="INCOME">INCOME</option>
+            <option value="EXPENSE">EXPENSE</option>
+          </select>
+          <input name="category" type="text" placeholder="Category filter" />
+          <input name="search" type="text" placeholder="Search notes/category" />
+          <input name="startDate" type="datetime-local" placeholder="Start Date" />
+          <input name="endDate" type="datetime-local" placeholder="End Date" />
+          <input name="page" type="number" min="1" value="1" />
+          <input name="limit" type="number" min="1" max="100" value="20" />
+          <button type="submit">GET /records</button>
+        </form>
+      </article>
+
+      <article class="card">
+        <h2>Record Update/Delete</h2>
+
+        <form id="updateRecordForm" class="stack">
+          <h3>Update (ADMIN)</h3>
+          <input name="id" type="number" min="1" placeholder="Record ID" required />
+          <input name="amount" type="number" step="0.01" min="0.01" placeholder="Amount" />
+          <select name="type">
+            <option value="">No Change</option>
+            <option value="INCOME">INCOME</option>
+            <option value="EXPENSE">EXPENSE</option>
+          </select>
+          <input name="category" type="text" placeholder="Category" />
+          <input name="date" type="datetime-local" />
+          <input name="notes" type="text" placeholder="Notes" />
+          <input name="userId" type="number" min="1" placeholder="User ID" />
+          <button type="submit">PATCH /records/:id</button>
+        </form>
+
+        <form id="deleteRecordForm" class="stack">
+          <h3>Delete (ADMIN)</h3>
+          <input name="id" type="number" min="1" placeholder="Record ID" required />
+          <button type="submit">DELETE /records/:id</button>
+        </form>
+      </article>
+    </section>
+
+    <section class="grid two">
+      <article class="card">
+        <h2>Dashboard</h2>
+        <form id="dashboardForm" class="stack">
+          <input name="startDate" type="datetime-local" placeholder="Start Date" />
+          <input name="endDate" type="datetime-local" placeholder="End Date" />
+          <button type="submit">GET /dashboard</button>
+        </form>
+      </article>
+
+      <article class="card">
+        <h2>Users (ADMIN)</h2>
+        <div class="button-row">
+          <button id="btnUsers" type="button">GET /users</button>
+        </div>
+
+        <form id="getUserForm" class="stack">
+          <input name="id" type="number" min="1" placeholder="User ID" required />
+          <button type="submit">GET /users/:id</button>
+        </form>
+
+        <form id="updateUserForm" class="stack">
+          <input name="id" type="number" min="1" placeholder="User ID" required />
+          <select name="role">
+            <option value="">No Role Change</option>
+            <option value="VIEWER">VIEWER</option>
+            <option value="ANALYST">ANALYST</option>
+            <option value="ADMIN">ADMIN</option>
+          </select>
+          <select name="isActive">
+            <option value="">No Status Change</option>
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+          <button type="submit">PATCH /users/:id</button>
+        </form>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>Custom Request</h2>
+      <form id="customForm" class="stack">
+        <select name="method">
+          <option value="GET">GET</option>
+          <option value="POST">POST</option>
+          <option value="PATCH">PATCH</option>
+          <option value="DELETE">DELETE</option>
+        </select>
+        <input name="path" type="text" value="/health" required />
+        <textarea name="body" rows="5" placeholder='JSON body, e.g. {"email":"a@b.com"}'></textarea>
+        <label class="checkbox">
+          <input name="useAuth" type="checkbox" checked />
+          <span>Use JWT Authorization Header</span>
+        </label>
+        <button type="submit">Send Custom Request</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Response Output</h2>
+      <pre id="responseOutput">No requests yet.</pre>
+    </section>
+  </main>
+
+  <script src="/tester/script.js"></script>
+</body>
+</html>
