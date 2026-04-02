@@ -5,11 +5,13 @@ import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 import { config } from './config/env';
 import { errorHandler } from './middlewares/errorHandler';
+import { apiLimiter } from './middlewares/rateLimitMiddleware';
 import { requestLogger } from './middlewares/requestLogger';
 import apiRoutes from './routes';
 import { swaggerSpec } from './utils/swagger';
 
 const app = express();
+app.set('trust proxy', 1);
 
 const allowedOrigins =
   config.corsOrigin === '*'
@@ -43,6 +45,7 @@ app.get('/', (_req: Request, res: Response) => {
 });
 
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api', apiLimiter);
 app.use('/api', apiRoutes);
 
 app.use((req: Request, res: Response) => {

@@ -167,6 +167,9 @@ Required values:
 - `JWT_SECRET`
 - `JWT_EXPIRES_IN`
 - `BCRYPT_SALT_ROUNDS`
+- `RATE_LIMIT_WINDOW_MS`
+- `RATE_LIMIT_MAX`
+- `AUTH_RATE_LIMIT_MAX`
 
 ## Run Locally
 
