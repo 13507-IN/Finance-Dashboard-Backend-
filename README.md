@@ -255,6 +255,11 @@ Useful local URLs:
 - Swagger docs: `http://localhost:4000/api/docs`
 - API tester UI: `http://localhost:4000/tester`
 
+Production URLs:
+
+- API base: `https://finance-dashboard-backend-kti2.onrender.com/api`
+- Swagger docs: `https://finance-dashboard-backend-kti2.onrender.com/api/docs`
+
 ## 12. Deployment (Render)
 
 Use production mode. Do not run `npm run dev`.
