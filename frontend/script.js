@@ -146,6 +146,10 @@
     request({ method: 'GET', path: '/dashboard' });
   });
 
+  document.getElementById('btnRecords').addEventListener('click', () => {
+    request({ method: 'GET', path: '/records' });
+  });
+
   document.getElementById('registerForm').addEventListener('submit', (event) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -194,6 +198,25 @@
     request({ method: 'POST', path: '/records', body });
   });
 
+  document.getElementById('getCategoriesForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const query = payloadFromForm(form, [{ name: 'type', type: 'string' }]);
+
+    request({ method: 'GET', path: '/categories', query });
+  });
+
+  document.getElementById('createCategoryForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const body = payloadFromForm(form, [
+      { name: 'name', type: 'string' },
+      { name: 'type', type: 'string' },
+    ]);
+
+    request({ method: 'POST', path: '/categories', body });
+  });
+
   document.getElementById('getRecordsForm').addEventListener('submit', (event) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -203,6 +226,9 @@
       { name: 'search', type: 'string' },
       { name: 'startDate', type: 'date' },
       { name: 'endDate', type: 'date' },
+      { name: 'userId', type: 'number' },
+      { name: 'sortBy', type: 'string' },
+      { name: 'sortOrder', type: 'string' },
       { name: 'page', type: 'number' },
       { name: 'limit', type: 'number' },
     ]);

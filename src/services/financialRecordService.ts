@@ -1,7 +1,8 @@
 import { Prisma, RecordType } from '@prisma/client';
 import prisma from '../prisma/client';
-import { NotFoundError } from '../utils/errors';
+import { BadRequestError, NotFoundError } from '../utils/errors';
 import { decimalToNumber } from '../utils/number';
+import { categoryService } from './categoryService';
 import {
   CreateFinancialRecordInput,
   FinancialRecordFilterInput,
@@ -98,6 +99,10 @@ function buildWhere(filters: FinancialRecordFilterInput): Prisma.FinancialRecord
     ];
   }
 
+  if (filters.userId) {
+    where.userId = filters.userId;
+  }
+
   return where;
 }
 
@@ -114,6 +119,13 @@ async function createRecord(
 
   if (!owner) {
     throw new NotFoundError('Associated user does not exist');
+  }
+
+  const categoryExists = await categoryService.categoryExists(payload.category, payload.type);
+  if (!categoryExists) {
+    throw new BadRequestError(
+      `Category '${payload.category}' is not available for ${payload.type}. Create it first.`,
+    );
   }
 
   const record = await prisma.financialRecord.create({
@@ -139,16 +151,22 @@ async function createRecord(
   return mapFinancialRecord(record);
 }
 
-async function listRecords(filters: FinancialRecordFilterInput): Promise<PaginatedFinancialRecords> {
+async function listRecords(
+  filters: FinancialRecordFilterInput,
+): Promise<PaginatedFinancialRecords> {
   const page = filters.page;
   const limit = filters.limit;
 
   const where = buildWhere(filters);
 
+  const orderBy: Prisma.FinancialRecordOrderByWithRelationInput = {
+    [filters.sortBy]: filters.sortOrder,
+  };
+
   const [records, total] = await Promise.all([
     prisma.financialRecord.findMany({
       where,
-      orderBy: { date: 'desc' },
+      orderBy,
       skip: (page - 1) * limit,
       take: limit,
       include: {
@@ -183,6 +201,18 @@ async function updateRecord(
 
   if (!existingRecord) {
     throw new NotFoundError('Financial record not found');
+  }
+
+  if (payload.type !== undefined || payload.category !== undefined) {
+    const finalType = payload.type ?? existingRecord.type;
+    const finalCategory = payload.category ?? existingRecord.category;
+    const categoryExists = await categoryService.categoryExists(finalCategory, finalType);
+
+    if (!categoryExists) {
+      throw new BadRequestError(
+        `Category '${finalCategory}' is not available for ${finalType}. Create it first.`,
+      );
+    }
   }
 
   if (payload.userId !== undefined) {

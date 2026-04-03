@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { financialRecordService } from '../services/financialRecordService';
 import { AuthenticatedRequest } from '../types/auth';
+import { RequestWithValidatedQuery } from '../types/request';
 import { sendSuccess } from '../utils/response';
 import { FinancialRecordFilterInput } from '../validators/financialRecordValidator';
 
@@ -10,8 +11,9 @@ export async function createFinancialRecord(req: Request, res: Response): Promis
 }
 
 export async function getFinancialRecords(req: Request, res: Response): Promise<void> {
+  const request = req as RequestWithValidatedQuery<FinancialRecordFilterInput>;
   const records = await financialRecordService.listRecords(
-    req.query as unknown as FinancialRecordFilterInput,
+    request.validatedQuery ?? (req.query as unknown as FinancialRecordFilterInput),
   );
   sendSuccess(res, 200, 'Financial records fetched successfully', records);
 }

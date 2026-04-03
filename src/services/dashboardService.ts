@@ -31,6 +31,12 @@ interface DashboardAnalytics {
   }>;
 }
 
+interface MonthlyTrendRow {
+  month: Date;
+  total_income: Prisma.Decimal | null;
+  total_expenses: Prisma.Decimal | null;
+}
+
 function buildDateWhere(filters: DashboardQueryInput): Prisma.FinancialRecordWhereInput {
   if (!filters.startDate && !filters.endDate) {
     return {};
@@ -47,7 +53,20 @@ function buildDateWhere(filters: DashboardQueryInput): Prisma.FinancialRecordWhe
 async function getAnalytics(filters: DashboardQueryInput): Promise<DashboardAnalytics> {
   const dateWhere = buildDateWhere(filters);
 
-  const [incomeAgg, expenseAgg, categoryGroups, recentTransactions, monthlySourceRecords] =
+  const monthFilters: Prisma.Sql[] = [];
+  if (filters.startDate) {
+    monthFilters.push(Prisma.sql`"date" >= ${filters.startDate}`);
+  }
+  if (filters.endDate) {
+    monthFilters.push(Prisma.sql`"date" <= ${filters.endDate}`);
+  }
+
+  const monthlyWhereClause =
+    monthFilters.length > 0
+      ? Prisma.sql`WHERE ${Prisma.join(monthFilters, ' AND ')}`
+      : Prisma.empty;
+
+  const [incomeAgg, expenseAgg, categoryGroups, recentTransactions, monthlyTrendRows] =
     await Promise.all([
       prisma.financialRecord.aggregate({
         where: {
@@ -93,17 +112,16 @@ async function getAnalytics(filters: DashboardQueryInput): Promise<DashboardAnal
           userId: true,
         },
       }),
-      prisma.financialRecord.findMany({
-        where: dateWhere,
-        orderBy: {
-          date: 'asc',
-        },
-        select: {
-          amount: true,
-          type: true,
-          date: true,
-        },
-      }),
+      prisma.$queryRaw<MonthlyTrendRow[]>(Prisma.sql`
+        SELECT
+          date_trunc('month', "date") AS month,
+          SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) AS total_income,
+          SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) AS total_expenses
+        FROM "financial_records"
+        ${monthlyWhereClause}
+        GROUP BY 1
+        ORDER BY 1 ASC
+      `),
     ]);
 
   const totalIncome = decimalToNumber(incomeAgg._sum.amount);
@@ -115,34 +133,19 @@ async function getAnalytics(filters: DashboardQueryInput): Promise<DashboardAnal
     total: decimalToNumber(group._sum.amount),
   }));
 
-  // Prisma does not provide month-bucket groupBy out of the box, so we aggregate in-memory.
-  const monthlyMap = new Map<string, { totalIncome: number; totalExpenses: number }>();
+  const monthlyTrends = monthlyTrendRows.map((row) => {
+    const bucketDate = row.month instanceof Date ? row.month : new Date(row.month);
+    const month = `${bucketDate.getUTCFullYear()}-${String(bucketDate.getUTCMonth() + 1).padStart(2, '0')}`;
+    const totalIncome = decimalToNumber(row.total_income);
+    const totalExpenses = decimalToNumber(row.total_expenses);
 
-  for (const record of monthlySourceRecords) {
-    const month = `${record.date.getUTCFullYear()}-${String(record.date.getUTCMonth() + 1).padStart(2, '0')}`;
-
-    const current = monthlyMap.get(month) ?? {
-      totalIncome: 0,
-      totalExpenses: 0,
+    return {
+      month,
+      totalIncome,
+      totalExpenses,
+      netBalance: totalIncome - totalExpenses,
     };
-
-    const amount = decimalToNumber(record.amount);
-
-    if (record.type === 'INCOME') {
-      current.totalIncome += amount;
-    } else {
-      current.totalExpenses += amount;
-    }
-
-    monthlyMap.set(month, current);
-  }
-
-  const monthlyTrends = Array.from(monthlyMap.entries()).map(([month, values]) => ({
-    month,
-    totalIncome: values.totalIncome,
-    totalExpenses: values.totalExpenses,
-    netBalance: values.totalIncome - values.totalExpenses,
-  }));
+  });
 
   return {
     totals: {

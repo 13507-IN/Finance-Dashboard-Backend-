@@ -64,6 +64,39 @@
 
     <section class="grid two">
       <article class="card">
+        <h2>Categories</h2>
+        <form id="getCategoriesForm" class="stack">
+          <h3>Get Categories</h3>
+          <select name="type">
+            <option value="">All Types</option>
+            <option value="INCOME">INCOME</option>
+            <option value="EXPENSE">EXPENSE</option>
+          </select>
+          <button type="submit">GET /categories</button>
+        </form>
+
+        <form id="createCategoryForm" class="stack">
+          <h3>Create Category</h3>
+          <input name="name" type="text" placeholder="Category name" required />
+          <select name="type" required>
+            <option value="INCOME">INCOME</option>
+            <option value="EXPENSE">EXPENSE</option>
+          </select>
+          <button type="submit">POST /categories</button>
+        </form>
+      </article>
+
+      <article class="card">
+        <h2>Records Quick Access</h2>
+        <p>Use categories from GET /categories before creating records.</p>
+        <div class="button-row">
+          <button id="btnRecords" type="button">GET /records</button>
+        </div>
+      </article>
+    </section>
+
+    <section class="grid two">
+      <article class="card">
         <h2>Financial Records</h2>
 
         <form id="createRecordForm" class="stack">
@@ -91,6 +124,16 @@
           <input name="search" type="text" placeholder="Search notes/category" />
           <input name="startDate" type="datetime-local" placeholder="Start Date" />
           <input name="endDate" type="datetime-local" placeholder="End Date" />
+          <input name="userId" type="number" min="1" placeholder="User ID (ADMIN only)" />
+          <select name="sortBy">
+            <option value="date">Sort by Date</option>
+            <option value="amount">Sort by Amount</option>
+            <option value="createdAt">Sort by Created At</option>
+          </select>
+          <select name="sortOrder">
+            <option value="desc">DESC</option>
+            <option value="asc">ASC</option>
+          </select>
           <input name="page" type="number" min="1" value="1" />
           <input name="limit" type="number" min="1" max="100" value="20" />
           <button type="submit">GET /records</button>

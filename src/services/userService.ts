@@ -1,6 +1,7 @@
 import { Prisma, User } from '@prisma/client';
 import prisma from '../prisma/client';
-import { NotFoundError } from '../utils/errors';
+import { AuthenticatedUser } from '../types/auth';
+import { BadRequestError, NotFoundError } from '../utils/errors';
 import { UpdateUserInput } from '../validators/userValidator';
 
 export interface ManagedUser {
@@ -57,11 +58,40 @@ async function getUserById(id: number): Promise<ManagedUser> {
   return mapUser(user);
 }
 
-async function updateUser(id: number, payload: UpdateUserInput): Promise<ManagedUser> {
+async function updateUser(
+  id: number,
+  payload: UpdateUserInput,
+  actor: AuthenticatedUser,
+): Promise<ManagedUser> {
   const existingUser = await prisma.user.findUnique({ where: { id } });
 
   if (!existingUser) {
     throw new NotFoundError('User not found');
+  }
+
+  const isSelfUpdate = actor.id === id;
+  const isAdminDemotion = payload.role !== undefined && existingUser.role === 'ADMIN' && payload.role !== 'ADMIN';
+  const isAdminDeactivation = payload.isActive !== undefined && existingUser.role === 'ADMIN' && payload.isActive === false;
+
+  if (isSelfUpdate && payload.role !== undefined && payload.role !== 'ADMIN') {
+    throw new BadRequestError('You cannot demote your own admin account');
+  }
+
+  if (isSelfUpdate && payload.isActive === false) {
+    throw new BadRequestError('You cannot deactivate your own admin account');
+  }
+
+  if (isAdminDemotion || isAdminDeactivation) {
+    const activeAdminCount = await prisma.user.count({
+      where: {
+        role: 'ADMIN',
+        isActive: true,
+      },
+    });
+
+    if (existingUser.isActive && activeAdminCount <= 1) {
+      throw new BadRequestError('At least one active ADMIN must remain in the system');
+    }
   }
 
   const data: Prisma.UserUpdateInput = {};

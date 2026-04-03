@@ -17,6 +17,7 @@ Production-ready backend system for a Financial Dashboard using Node.js, Express
 - JWT-based register/login authentication
 - Strict RBAC with `VIEWER`, `ANALYST`, `ADMIN`
 - Financial records CRUD with filters and search
+- Category management with fixed system categories + custom user categories
 - Dashboard analytics (totals, net balance, category totals, recent transactions, monthly trends)
 - Centralized validation and error handling
 - Swagger API docs at `/api/docs`
@@ -67,8 +68,23 @@ Filters on `GET /api/records`:
 - `type` (`INCOME`/`EXPENSE`)
 - `category`
 - `search` (notes/category)
+- `userId` (ADMIN only scope)
 - `startDate`, `endDate`
+- `sortBy` (`date`/`amount`/`createdAt`)
+- `sortOrder` (`asc`/`desc`)
 - `page`, `limit`
+
+Access behavior:
+
+- `ANALYST` and `ADMIN` can fetch all records
+- `userId` filter can be used to narrow results
+
+### Categories
+
+- `GET /api/categories` (all authenticated roles)
+- `POST /api/categories` (all authenticated roles)
+
+System categories are auto-seeded at server startup, and users can add more categories.
 
 ### Dashboard Analytics
 
@@ -83,6 +99,10 @@ Supported query params:
 - `GET /api/users`
 - `GET /api/users/:id`
 - `PATCH /api/users/:id`
+
+Safety guard:
+
+- The last active `ADMIN` cannot be demoted or deactivated.
 
 ### Health
 

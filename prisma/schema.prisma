@@ -26,6 +26,7 @@ model User {
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   financialRecords FinancialRecord[]
+  createdCategories Category[]       @relation("CategoryCreator")
 
   @@map("users")
 }
@@ -47,4 +48,20 @@ model FinancialRecord {
   @@index([date])
   @@index([userId])
   @@map("financial_records")
+}
+
+model Category {
+  id             Int        @id @default(autoincrement())
+  name           String
+  normalizedName String
+  type           RecordType
+  isSystem       Boolean    @default(false)
+  createdById    Int?
+  createdBy      User?      @relation("CategoryCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@unique([normalizedName, type])
+  @@index([type])
+  @@map("categories")
 }

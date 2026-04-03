@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { userService } from '../services/userService';
+import { AuthenticatedRequest } from '../types/auth';
 import { sendSuccess } from '../utils/response';
 
 export async function listUsers(_req: Request, res: Response): Promise<void> {
@@ -13,6 +14,10 @@ export async function getUserById(req: Request, res: Response): Promise<void> {
 }
 
 export async function updateUser(req: Request, res: Response): Promise<void> {
-  const user = await userService.updateUser(Number(req.params.id), req.body);
+  const user = await userService.updateUser(
+    Number(req.params.id),
+    req.body,
+    (req as AuthenticatedRequest).user,
+  );
   sendSuccess(res, 200, 'User updated successfully', user);
 }

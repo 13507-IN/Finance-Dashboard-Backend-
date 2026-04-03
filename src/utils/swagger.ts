@@ -64,6 +64,14 @@ const swaggerOptions: swaggerJSDoc.Options = {
             userId: { type: 'integer' },
           },
         },
+        CreateCategoryPayload: {
+          type: 'object',
+          required: ['name', 'type'],
+          properties: {
+            name: { type: 'string' },
+            type: { type: 'string', enum: ['INCOME', 'EXPENSE'] },
+          },
+        },
         UpdateUserPayload: {
           type: 'object',
           properties: {
@@ -139,8 +147,11 @@ const swaggerOptions: swaggerJSDoc.Options = {
             { in: 'query', name: 'type', schema: { type: 'string', enum: ['INCOME', 'EXPENSE'] } },
             { in: 'query', name: 'category', schema: { type: 'string' } },
             { in: 'query', name: 'search', schema: { type: 'string' } },
+            { in: 'query', name: 'userId', schema: { type: 'integer' } },
             { in: 'query', name: 'startDate', schema: { type: 'string', format: 'date-time' } },
             { in: 'query', name: 'endDate', schema: { type: 'string', format: 'date-time' } },
+            { in: 'query', name: 'sortBy', schema: { type: 'string', enum: ['date', 'amount', 'createdAt'] } },
+            { in: 'query', name: 'sortOrder', schema: { type: 'string', enum: ['asc', 'desc'] } },
             { in: 'query', name: 'page', schema: { type: 'integer' } },
             { in: 'query', name: 'limit', schema: { type: 'integer' } },
           ],
@@ -222,6 +233,35 @@ const swaggerOptions: swaggerJSDoc.Options = {
           ],
           responses: {
             '200': { description: 'Dashboard analytics fetched' },
+          },
+        },
+      },
+      '/categories': {
+        get: {
+          summary: 'Get categories (all authenticated roles)',
+          tags: ['Categories'],
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            { in: 'query', name: 'type', schema: { type: 'string', enum: ['INCOME', 'EXPENSE'] } },
+          ],
+          responses: {
+            '200': { description: 'Categories fetched' },
+          },
+        },
+        post: {
+          summary: 'Create custom category (all authenticated roles)',
+          tags: ['Categories'],
+          security: [{ bearerAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CreateCategoryPayload' },
+              },
+            },
+          },
+          responses: {
+            '201': { description: 'Category created' },
           },
         },
       },

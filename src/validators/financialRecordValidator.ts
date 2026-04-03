@@ -27,10 +27,13 @@ export const financialRecordFilterSchema = z
     type: recordTypeSchema.optional(),
     category: z.string().trim().min(1).max(80).optional(),
     search: z.string().trim().min(1).max(80).optional(),
+    userId: z.coerce.number().int().positive().optional(),
     startDate: z.coerce.date().optional(),
     endDate: z.coerce.date().optional(),
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().min(1).max(100).default(20),
+    sortBy: z.enum(['date', 'amount', 'createdAt']).default('date'),
+    sortOrder: z.enum(['asc', 'desc']).default('desc'),
   })
   .refine(
     (data) => !(data.startDate && data.endDate) || data.endDate >= data.startDate,
