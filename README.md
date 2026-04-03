@@ -202,3 +202,20 @@ npm run dev
 
 API docs: `http://localhost:4000/api/docs`
 API tester UI: `http://localhost:4000/tester`
+
+## Render Deployment Notes
+
+Use production mode on Render (do not run `npm run dev`).
+
+- Build command: `npm run build`
+- Start command: `npm run prisma:migrate:deploy && npm start`
+
+Required environment variables on Render:
+
+- `DATABASE_URL`
+- `DIRECT_URL`
+- `JWT_SECRET`
+- `JWT_EXPIRES_IN`
+- `BCRYPT_SALT_ROUNDS`
+- `CORS_ORIGIN`
+- `PORT`
