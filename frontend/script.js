@@ -189,7 +189,7 @@
     const body = payloadFromForm(form, [
       { name: 'amount', type: 'number' },
       { name: 'type', type: 'string' },
-      { name: 'category', type: 'string' },
+      { name: 'categoryId', type: 'number' },
       { name: 'date', type: 'date' },
       { name: 'notes', type: 'string' },
       { name: 'userId', type: 'number' },
@@ -222,7 +222,7 @@
     const form = event.currentTarget;
     const query = payloadFromForm(form, [
       { name: 'type', type: 'string' },
-      { name: 'category', type: 'string' },
+      { name: 'categoryId', type: 'number' },
       { name: 'search', type: 'string' },
       { name: 'startDate', type: 'date' },
       { name: 'endDate', type: 'date' },
@@ -250,7 +250,7 @@
     const body = payloadFromForm(form, [
       { name: 'amount', type: 'number' },
       { name: 'type', type: 'string' },
-      { name: 'category', type: 'string' },
+      { name: 'categoryId', type: 'number' },
       { name: 'date', type: 'date' },
       { name: 'notes', type: 'string' },
       { name: 'userId', type: 'number' },

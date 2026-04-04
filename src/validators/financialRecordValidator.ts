@@ -9,7 +9,7 @@ export const financialRecordIdSchema = z.object({
 export const createFinancialRecordSchema = z.object({
   amount: z.coerce.number().positive('Amount must be a positive value'),
   type: recordTypeSchema,
-  category: z.string().trim().min(2).max(80),
+  categoryId: z.coerce.number().int().positive(),
   date: z.coerce.date({
     invalid_type_error: 'Date must be valid',
   }),
@@ -25,7 +25,7 @@ export const updateFinancialRecordSchema =
 export const financialRecordFilterSchema = z
   .object({
     type: recordTypeSchema.optional(),
-    category: z.string().trim().min(1).max(80).optional(),
+    categoryId: z.coerce.number().int().positive().optional(),
     search: z.string().trim().min(1).max(80).optional(),
     userId: z.coerce.number().int().positive().optional(),
     startDate: z.coerce.date().optional(),

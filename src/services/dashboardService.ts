@@ -87,13 +87,10 @@ async function getAnalytics(filters: DashboardQueryInput): Promise<DashboardAnal
         },
       }),
       prisma.financialRecord.groupBy({
-        by: ['category', 'type'],
+        by: ['categoryId', 'type'],
         where: dateWhere,
         _sum: {
           amount: true,
-        },
-        orderBy: {
-          category: 'asc',
         },
       }),
       prisma.financialRecord.findMany({
@@ -106,7 +103,8 @@ async function getAnalytics(filters: DashboardQueryInput): Promise<DashboardAnal
           id: true,
           amount: true,
           type: true,
-          category: true,
+          categoryId: true,
+          category: { select: { name: true } },
           date: true,
           notes: true,
           userId: true,
@@ -127,11 +125,15 @@ async function getAnalytics(filters: DashboardQueryInput): Promise<DashboardAnal
   const totalIncome = decimalToNumber(incomeAgg._sum.amount);
   const totalExpenses = decimalToNumber(expenseAgg._sum.amount);
 
+  const categoryIds = [...new Set(categoryGroups.map((g) => g.categoryId))];
+  const categories = await prisma.category.findMany({ where: { id: { in: categoryIds } } });
+  const categoryMap = new Map(categories.map((c) => [c.id, c.name]));
+
   const categoryWiseTotals = categoryGroups.map((group) => ({
-    category: group.category,
+    category: categoryMap.get(group.categoryId) || 'Unknown',
     type: group.type,
     total: decimalToNumber(group._sum.amount),
-  }));
+  })).sort((a, b) => a.category.localeCompare(b.category));
 
   const monthlyTrends = monthlyTrendRows.map((row) => {
     const bucketDate = row.month instanceof Date ? row.month : new Date(row.month);
@@ -158,7 +160,7 @@ async function getAnalytics(filters: DashboardQueryInput): Promise<DashboardAnal
       id: record.id,
       amount: decimalToNumber(record.amount),
       type: record.type,
-      category: record.category,
+      category: record.category?.name || 'Unknown',
       date: record.date,
       notes: record.notes,
       userId: record.userId,

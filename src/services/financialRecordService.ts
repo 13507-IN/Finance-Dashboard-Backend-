@@ -13,7 +13,8 @@ interface FinancialRecordResponse {
   id: number;
   amount: number;
   type: RecordType;
-  category: string;
+  categoryId: number;
+  category?: { id: number; name: string };
   date: Date;
   notes: string | null;
   user: {
@@ -42,6 +43,12 @@ type FinancialRecordWithUser = Prisma.FinancialRecordGetPayload<{
         role: true;
       };
     };
+    category: {
+      select: {
+        id: true;
+        name: true;
+      };
+    };
   };
 }>;
 
@@ -50,6 +57,7 @@ function mapFinancialRecord(record: FinancialRecordWithUser): FinancialRecordRes
     id: record.id,
     amount: decimalToNumber(record.amount),
     type: record.type,
+    categoryId: record.categoryId,
     category: record.category,
     date: record.date,
     notes: record.notes,
@@ -68,11 +76,8 @@ function buildWhere(filters: FinancialRecordFilterInput): Prisma.FinancialRecord
     where.type = filters.type;
   }
 
-  if (filters.category) {
-    where.category = {
-      contains: filters.category,
-      mode: 'insensitive',
-    };
+  if (filters.categoryId) {
+    where.categoryId = filters.categoryId;
   }
 
   if (filters.startDate || filters.endDate) {
@@ -92,8 +97,10 @@ function buildWhere(filters: FinancialRecordFilterInput): Prisma.FinancialRecord
       },
       {
         category: {
-          contains: filters.search,
-          mode: 'insensitive',
+          name: {
+            contains: filters.search,
+            mode: 'insensitive',
+          },
         },
       },
     ];
@@ -121,23 +128,24 @@ async function createRecord(
     throw new NotFoundError('Associated user does not exist');
   }
 
-  const categoryExists = await categoryService.categoryExists(payload.category, payload.type);
+  const categoryExists = await prisma.category.findUnique({ where: { id: payload.categoryId } });
   if (!categoryExists) {
-    throw new BadRequestError(
-      `Category '${payload.category}' is not available for ${payload.type}. Create it first.`,
-    );
+    throw new BadRequestError(`Category with ID ${payload.categoryId} does not exist.`);
   }
 
   const record = await prisma.financialRecord.create({
     data: {
       amount: new Prisma.Decimal(payload.amount),
       type: payload.type,
-      category: payload.category,
+      category: { connect: { id: payload.categoryId } },
       date: payload.date,
       notes: payload.notes,
-      userId: ownerUserId,
+      user: { connect: { id: ownerUserId } },
     },
     include: {
+      category: {
+        select: { id: true, name: true },
+      },
       user: {
         select: {
           id: true,
@@ -170,6 +178,9 @@ async function listRecords(
       skip: (page - 1) * limit,
       take: limit,
       include: {
+        category: {
+          select: { id: true, name: true },
+        },
         user: {
           select: {
             id: true,
@@ -203,15 +214,10 @@ async function updateRecord(
     throw new NotFoundError('Financial record not found');
   }
 
-  if (payload.type !== undefined || payload.category !== undefined) {
-    const finalType = payload.type ?? existingRecord.type;
-    const finalCategory = payload.category ?? existingRecord.category;
-    const categoryExists = await categoryService.categoryExists(finalCategory, finalType);
-
+  if (payload.categoryId !== undefined) {
+    const categoryExists = await prisma.category.findUnique({ where: { id: payload.categoryId } });
     if (!categoryExists) {
-      throw new BadRequestError(
-        `Category '${finalCategory}' is not available for ${finalType}. Create it first.`,
-      );
+      throw new BadRequestError(`Category with ID ${payload.categoryId} does not exist.`);
     }
   }
 
@@ -233,8 +239,8 @@ async function updateRecord(
     data.type = payload.type;
   }
 
-  if (payload.category !== undefined) {
-    data.category = payload.category;
+  if (payload.categoryId !== undefined) {
+    data.category = { connect: { id: payload.categoryId } };
   }
 
   if (payload.date !== undefined) {
@@ -257,6 +263,9 @@ async function updateRecord(
     where: { id },
     data,
     include: {
+      category: {
+        select: { id: true, name: true },
+      },
       user: {
         select: {
           id: true,

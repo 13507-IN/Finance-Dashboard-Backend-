@@ -43,11 +43,11 @@ const swaggerOptions: swaggerJSDoc.Options = {
         },
         CreateFinancialRecordPayload: {
           type: 'object',
-          required: ['amount', 'type', 'category', 'date'],
+          required: ['amount', 'type', 'categoryId', 'date'],
           properties: {
-            amount: { type: 'number', minimum: 0.01 },
+            amount: { type: 'number' },
             type: { type: 'string', enum: ['INCOME', 'EXPENSE'] },
-            category: { type: 'string' },
+            categoryId: { type: 'number' },
             date: { type: 'string', format: 'date-time' },
             notes: { type: 'string' },
             userId: { type: 'integer' },
@@ -145,7 +145,7 @@ const swaggerOptions: swaggerJSDoc.Options = {
           security: [{ bearerAuth: [] }],
           parameters: [
             { in: 'query', name: 'type', schema: { type: 'string', enum: ['INCOME', 'EXPENSE'] } },
-            { in: 'query', name: 'category', schema: { type: 'string' } },
+            { in: 'query', name: 'categoryId', schema: { type: 'number' } },
             { in: 'query', name: 'search', schema: { type: 'string' } },
             { in: 'query', name: 'userId', schema: { type: 'integer' } },
             { in: 'query', name: 'startDate', schema: { type: 'string', format: 'date-time' } },
