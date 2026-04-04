@@ -352,5 +352,3 @@ These are typically the hardest and most error-prone parts:
 - `npm run prisma:studio` - Open Prisma Studio
 
 ---
-
-If you are submitting this for internship screening, this README is designed so reviewers can run, test, and understand the architecture quickly.
