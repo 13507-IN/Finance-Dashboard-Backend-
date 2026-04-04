@@ -2,6 +2,9 @@
 
 Production-ready backend for a Financial Dashboard built with Node.js, Express, TypeScript, Prisma, and PostgreSQL.
 
+# API docs:
+https://finance-dashboard-backend-kti2.onrender.com/api/docs/
+
 ## 1. What This Project Does
 
 This backend provides:
