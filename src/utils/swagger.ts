@@ -11,7 +11,7 @@ const swaggerOptions: swaggerJSDoc.Options = {
     },
     servers: [
       {
-        url: `http://localhost:${config.port}/api`,
+        url: `https://finance-dashboard-backend-kti2.onrender.com/api`,
         description: 'Local development server',
       },
     ],
